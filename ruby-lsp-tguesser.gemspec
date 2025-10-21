@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require_relative "lib/ruby_lsp/guesser/version"
+require_relative "lib/ruby_lsp/tguesser/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "ruby-lsp-guesser"
-  spec.version = RubyLsp::Guesser::VERSION
+  spec.name = "ruby-lsp-tguesser"
+  spec.version = RubyLsp::Tguesser::VERSION
   spec.authors = ["riseshia"]
   spec.email = [""]
 
-  spec.summary = "A Ruby LSP guesser tool"
+  spec.summary = "A Ruby LSP tguesser tool"
   spec.description = "A tool to help guess and analyze Ruby LSP functionality"
-  spec.homepage = "https://github.com/riseshia/ruby-lsp-guesser"
+  spec.homepage = "https://github.com/riseshia/ruby-lsp-tguesser"
   spec.required_ruby_version = ">= 3.3.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/riseshia/ruby-lsp-guesser"
-  spec.metadata["changelog_uri"] = "https://github.com/riseshia/ruby-lsp-guesser/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/riseshia/ruby-lsp-tguesser"
+  spec.metadata["changelog_uri"] = "https://github.com/riseshia/ruby-lsp-tguesser/blob/main/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.

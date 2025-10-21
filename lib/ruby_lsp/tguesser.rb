@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "guesser/version"
+require_relative "tguesser/version"
 
 module RubyLsp
-  module Guesser
+  module Tguesser
     class Error < StandardError; end
     # Your code goes here...
   end
