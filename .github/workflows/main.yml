@@ -3,7 +3,7 @@ name: Ruby
 on:
   push:
     branches:
-      - init-gem-repo-011CUKxMUQ1Sn5fVt696r6gX
+      - main
 
   pull_request:
 

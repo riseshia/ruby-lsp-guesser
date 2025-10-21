@@ -2,9 +2,9 @@
 
 require "test_helper"
 
-class Ruby::Lsp::TestGuesser < Minitest::Test
+class RubyLsp::TestGuesser < Minitest::Test
   def test_that_it_has_a_version_number
-    refute_nil ::Ruby::Lsp::Guesser::VERSION
+    refute_nil ::RubyLsp::Guesser::VERSION
   end
 
   def test_it_does_something_useful
