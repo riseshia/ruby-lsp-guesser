@@ -81,8 +81,6 @@ module RubyLsp
           node.name.to_s
         when Prism::ConstantPathNode
           node.slice
-        else
-          nil
         end
       end
 
@@ -103,9 +101,7 @@ module RubyLsp
 
       def find_root_node(node)
         current = node
-        while current.respond_to?(:parent) && current.parent
-          current = current.parent
-        end
+        current = current.parent while current.respond_to?(:parent) && current.parent
         current
       end
 
@@ -155,20 +151,20 @@ module RubyLsp
       end
 
       def log_method_calls(variable_name, method_calls)
-        $stderr.puts "\n" + ("=" * 80)
-        $stderr.puts "[Ruby LSP Guesser] Method calls on variable: #{variable_name}"
-        $stderr.puts "=" * 80
+        warn "\n#{"=" * 80}"
+        warn "[Ruby LSP Guesser] Method calls on variable: #{variable_name}"
+        warn "=" * 80
 
         if method_calls.empty?
-          $stderr.puts "No method calls found for '#{variable_name}'"
+          warn "No method calls found for '#{variable_name}'"
         else
-          $stderr.puts "Found #{method_calls.size} method call(s):"
+          warn "Found #{method_calls.size} method call(s):"
           method_calls.each_with_index do |call, index|
-            $stderr.puts "  #{index + 1}. #{variable_name}.#{call[:method]} (at line #{call[:location]})"
+            warn "  #{index + 1}. #{variable_name}.#{call[:method]} (at line #{call[:location]})"
           end
         end
 
-        $stderr.puts "=" * 80 + "\n"
+        warn "#{"=" * 80}\n"
       end
     end
   end

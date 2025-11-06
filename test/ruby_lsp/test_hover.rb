@@ -52,7 +52,7 @@ module RubyLsp
         RUBY
 
         parsed = Prism.parse(source)
-        local_var_node = find_node_by_type(parsed.value, Prism::LocalVariableReadNode)
+        find_node_by_type(parsed.value, Prism::LocalVariableReadNode)
 
         hover = create_hover_with_root(parsed.value)
         method_calls = hover.send(:find_method_calls_for_variable, "user")
@@ -203,7 +203,7 @@ module RubyLsp
       def mock_node_context(node)
         Object.new.tap do |obj|
           obj.instance_variable_set(:@node, node)
-          def obj.node
+          def obj.node # rubocop:disable Style/TrivialAccessors
             @node
           end
         end
