@@ -8,15 +8,7 @@ module RubyLsp
         @response_builder = response_builder
         @node_context = node_context
 
-        dispatcher.register(
-          self,
-          :on_constant_read_node_enter,
-          :on_constant_path_node_enter,
-          :on_local_variable_read_node_enter,
-          :on_instance_variable_read_node_enter,
-          :on_class_variable_read_node_enter,
-          :on_global_variable_read_node_enter
-        )
+        register_listeners(dispatcher)
       end
 
       def on_constant_read_node_enter(_node)
@@ -44,6 +36,18 @@ module RubyLsp
       end
 
       private
+
+      def register_listeners(dispatcher)
+        dispatcher.register(
+          self,
+          :on_constant_read_node_enter,
+          :on_constant_path_node_enter,
+          :on_local_variable_read_node_enter,
+          :on_instance_variable_read_node_enter,
+          :on_class_variable_read_node_enter,
+          :on_global_variable_read_node_enter
+        )
+      end
 
       def add_hover_content
         @response_builder.push(
