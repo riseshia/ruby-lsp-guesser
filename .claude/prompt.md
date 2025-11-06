@@ -14,10 +14,10 @@ This project follows strict Test-Driven Development (TDD) practices based on Ken
 
 ### Automatic TDD Mode
 
-When the user asks you to implement a feature or fix a bug:
+**CRITICAL**: When the user asks you to implement ANY feature or fix ANY bug:
 
-1. First, check if there's a relevant test in `plan.md`
-2. If yes, follow the `/go` command workflow automatically:
+1. **ALWAYS use the `/go` command first** - Do not implement directly
+2. The `/go` command will automatically:
    - Find the next unmarked test in `plan.md`
    - Mark it as [~] (in progress)
    - Write the test first (Red phase)
@@ -26,6 +26,13 @@ When the user asks you to implement a feature or fix a bug:
    - Mark it as [x] (completed)
    - Commit with clear message indicating structural or behavioral change
 3. If no test exists in `plan.md`, ask the user if you should add it first
+
+**Examples of when to use `/go`**:
+- "구현해줘" / "implement this"
+- "이 기능 추가해줘" / "add this feature"
+- "버그 고쳐줘" / "fix this bug"
+- "코드 작성해줘" / "write this code"
+- Any request that involves writing or modifying code
 
 ### Code Quality Standards
 
