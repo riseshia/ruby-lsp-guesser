@@ -1,28 +1,38 @@
 # RubyLsp::Guesser
 
-TODO: Delete this and the text below, and describe your gem
+A Ruby LSP addon that provides hover tooltips with helpful information.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ruby_lsp/guesser`. To experiment with that code, run `bin/console` for an interactive prompt.
+## Features
+
+- **Hover tooltips**: Display informative messages when hovering over Ruby code elements
+- Supports method calls, constants, and constant paths
+- Easy to integrate with any Ruby LSP-enabled editor
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+Add this line to your application's Gemfile:
 
-Install the gem and add to the application's Gemfile by executing:
-
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem 'ruby-lsp-guesser'
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+And then execute:
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle install
+```
+
+Or install it yourself as:
+
+```bash
+gem install ruby-lsp-guesser
 ```
 
 ## Usage
 
-TODO: Write usage instructions here
+Once installed, the addon will automatically be loaded by Ruby LSP. When you hover over method calls, constants, or constant paths in your Ruby code, you'll see a tooltip with information from the guesser.
+
+The addon registers itself automatically and requires no additional configuration.
 
 ## Development
 

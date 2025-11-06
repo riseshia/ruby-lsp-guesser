@@ -8,8 +8,13 @@ module RubyLsp
       refute_nil ::RubyLsp::Guesser::VERSION
     end
 
-    def test_it_does_something_useful
-      skip "TODO: Write actual tests"
+    def test_addon_name
+      addon = Guesser::Addon.new
+      assert_equal "RubyLsp::Guesser", addon.name
+    end
+
+    def test_hover_class_exists
+      assert defined?(RubyLsp::Guesser::Hover)
     end
   end
 end
