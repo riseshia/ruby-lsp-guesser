@@ -1,19 +1,5 @@
 # Project-Specific Instructions
 
-## Korean Term Clarification Protocol
-
-**IMPORTANT**: When users provide requests in Korean, clarify ambiguous terms immediately:
-
-Common ambiguous terms:
-- **"정수"** → Can mean "constant" (CONSTANT_NAME) OR "integer" (123)
-  - Check existing code context first (e.g., `constant_read_node` vs `integer_node`)
-  - Ask if uncertain: "Do you mean constants (CONSTANT) or integers (123)?"
-- **"변수"** → "variable" - may or may not include constants
-- **"함수"** → "function" or "method"
-- **"심볼"** → Ruby symbol (:foo) or identifier
-
-**Rule**: 30 seconds of clarification saves 5 minutes of rework. Always check existing code patterns before assuming.
-
 ## TodoWrite Usage Guidelines
 
 **When NOT to use TodoWrite** (skip for simple tasks):
