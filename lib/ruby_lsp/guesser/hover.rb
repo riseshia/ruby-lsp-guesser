@@ -16,15 +16,15 @@ module RubyLsp
         )
       end
 
-      def on_call_node_enter(node)
+      def on_call_node_enter(_node)
         add_hover_content
       end
 
-      def on_constant_read_node_enter(node)
+      def on_constant_read_node_enter(_node)
         add_hover_content
       end
 
-      def on_constant_path_node_enter(node)
+      def on_constant_path_node_enter(_node)
         add_hover_content
       end
 

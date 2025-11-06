@@ -4,6 +4,8 @@ require "ruby_lsp/addon"
 
 module RubyLsp
   module Guesser
+    # Ruby LSP addon for the Guesser gem
+    # Provides hover tooltip functionality for Ruby code
     class Addon < ::RubyLsp::Addon
       def name
         "RubyLsp::Guesser"
