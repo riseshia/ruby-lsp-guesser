@@ -1,5 +1,37 @@
 # Project-Specific Instructions
 
+## Korean Term Clarification Protocol
+
+**IMPORTANT**: When users provide requests in Korean, clarify ambiguous terms immediately:
+
+Common ambiguous terms:
+- **"정수"** → Can mean "constant" (CONSTANT_NAME) OR "integer" (123)
+  - Check existing code context first (e.g., `constant_read_node` vs `integer_node`)
+  - Ask if uncertain: "Do you mean constants (CONSTANT) or integers (123)?"
+- **"변수"** → "variable" - may or may not include constants
+- **"함수"** → "function" or "method"
+- **"심볼"** → Ruby symbol (:foo) or identifier
+
+**Rule**: 30 seconds of clarification saves 5 minutes of rework. Always check existing code patterns before assuming.
+
+## TodoWrite Usage Guidelines
+
+**When NOT to use TodoWrite** (skip for simple tasks):
+1. Single file edits with 1-2 clear steps
+2. Simple bug fixes in one location
+3. Rubocop/linting fixes
+4. Adding missing files to git
+5. Straightforward refactoring
+
+**When TO use TodoWrite** (only for complex work):
+1. 3+ distinct files need changes
+2. Multiple independent systems affected
+3. User explicitly lists multiple tasks
+4. Complex multi-step requiring research + design + implementation
+5. Debugging unclear issues
+
+**Rule**: Can you complete in one focused session without tracking? → No TodoWrite
+
 ## TDD Development Workflow
 
 This project follows strict Test-Driven Development (TDD) practices based on Kent Beck's principles.
@@ -48,3 +80,79 @@ This project follows strict Test-Driven Development (TDD) practices based on Ken
 - Run tests: `rake test`
 - Test files location: `test/ruby_lsp/`
 - Always run tests before committing
+
+## Linter-First Strategy
+
+**CRITICAL**: Run linter BEFORE committing to avoid separate "fix linting" commits.
+
+**Workflow**:
+1. After editing any Ruby file, run: `bin/rubocop <file_path>`
+2. If violations found, fix them immediately
+3. Commit once with all changes together (code + linting fixes)
+
+**Benefits**:
+- Reduces commits from 3 to 1
+- Avoids cluttering git history
+- Catches issues early
+
+**Never create separate "Fix rubocop" commits** - always fix linting issues in the same commit as the code change.
+
+## Atomic Commit Strategy
+
+**Group related changes into single commits**:
+
+✅ **Good** - Single commit:
+- "Filter hover to constants and variables only"
+  - Changed dispatcher calls
+  - Updated handlers
+  - Fixed Rubocop violations
+  - Added binstubs
+
+❌ **Bad** - Multiple commits:
+- "Filter hover..."
+- "Fix rubocop..."
+- "Add binstub..."
+
+**Pre-commit checklist**:
+1. Run linter on changed files
+2. Run tests
+3. Check for untracked files that should be included
+4. Make ONE commit with all related changes
+
+## Parallel Execution Rules
+
+**ALWAYS execute operations in parallel when there are no dependencies**:
+
+✅ **Must parallelize**:
+1. Reading multiple files: `Read(file1.rb) + Read(file2.rb)` together
+2. Git inspection: `git status + git diff + git log` together
+3. Independent searches: `Glob + Grep` together
+
+❌ **Only sequential when TRUE dependencies exist**:
+- Edit needs Read first (tool requirement)
+- Push needs commit first (data dependency)
+- Commit needs tests to pass first
+
+**Performance benefit**: Parallel execution reduces time by 40-60%
+
+## Implementation Task Checklist
+
+**Before starting any implementation**:
+
+□ Clarify ambiguous terms - Ask before assuming
+□ Check for `/go` command in plan.md
+□ Read relevant files in parallel
+□ Decide on TodoWrite - Only if multi-step/complex (3+ files)
+□ Make changes
+□ Run linter BEFORE commit (bin/rubocop)
+□ Run tests (rake test)
+□ Single atomic commit with all related changes
+□ Check for untracked files
+□ Push to remote
+
+**Time estimates**:
+- Simple change: ~5 messages
+- Medium refactor: ~10 messages
+- Complex feature: Use `/go` command
+
+**If exceeding estimates, you may be over-complicating the task.**
