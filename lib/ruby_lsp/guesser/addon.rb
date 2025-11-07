@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "ruby_lsp/addon"
+require_relative "version"
+require_relative "hover"
 
 module RubyLsp
   module Guesser
