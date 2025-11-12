@@ -20,7 +20,7 @@ module RubyLsp
 
         response = hover_on_source(source, { line: 3, character: 6 })
 
-        assert_match(/Variable: `@user`/, response.contents.value)
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
       end
 
       def test_hover_on_class_variable
@@ -33,7 +33,7 @@ module RubyLsp
 
         response = hover_on_source(source, { line: 2, character: 4 })
 
-        assert_match(/Variable: `@@count`/, response.contents.value)
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
       end
 
       def test_hover_on_global_variable
@@ -44,7 +44,7 @@ module RubyLsp
 
         response = hover_on_source(source, { line: 1, character: 0 })
 
-        assert_match(/Variable: `\$global`/, response.contents.value)
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
       end
 
       def test_hover_on_constant
@@ -55,7 +55,7 @@ module RubyLsp
 
         response = hover_on_source(source, { line: 1, character: 0 })
 
-        assert_match(/Variable: `CONST`/, response.contents.value)
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
       end
 
       def test_hover_response_is_markdown

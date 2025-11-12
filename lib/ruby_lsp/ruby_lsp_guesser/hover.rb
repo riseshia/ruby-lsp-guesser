@@ -49,35 +49,9 @@ module RubyLsp
         )
       end
 
-      def add_hover_content(node)
-        # Get variable name from the node
-        variable_name = extract_variable_name(node)
-        return unless variable_name
-
-        # Build simple hover content with variable name
-        content = build_hover_content(variable_name)
+      def add_hover_content(_node)
+        content = "**Ruby LSP Guesser**\n\nHover information provided by Ruby LSP Guesser addon."
         @response_builder.push(content, category: :documentation)
-      end
-
-      def extract_variable_name(node)
-        case node
-        when Prism::LocalVariableReadNode
-          node.name.to_s
-        when Prism::InstanceVariableReadNode
-          node.name.to_s
-        when Prism::ClassVariableReadNode
-          node.name.to_s
-        when Prism::GlobalVariableReadNode
-          node.name.to_s
-        when Prism::ConstantReadNode
-          node.name.to_s
-        when Prism::ConstantPathNode
-          node.slice
-        end
-      end
-
-      def build_hover_content(variable_name)
-        "**Ruby LSP Guesser**\n\nVariable: `#{variable_name}`"
       end
     end
   end
