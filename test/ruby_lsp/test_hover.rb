@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "ruby_lsp/internal"
+require "ruby_lsp/ruby_lsp_guesser/addon"
 require "stringio"
 
 module RubyLsp
@@ -156,6 +157,50 @@ module RubyLsp
         # since strip and downcase are called on the result of upcase
         assert_equal 1, method_calls.size
         assert_equal "upcase", method_calls[0][:method]
+      end
+
+      # Tests for build_hover_content method
+
+      def test_build_hover_content_with_method_calls
+        hover = create_hover_with_root(nil)
+        method_calls = [
+          { method: "upcase", location: "2:0" },
+          { method: "downcase", location: "3:0" },
+          { method: "strip", location: "4:0" }
+        ]
+
+        content = hover.send(:build_hover_content, "user", method_calls)
+
+        assert_includes content, "Variable: `user`"
+        assert_includes content, "Method calls on this variable:"
+        assert_includes content, "`user.upcase` (line 2:0)"
+        assert_includes content, "`user.downcase` (line 3:0)"
+        assert_includes content, "`user.strip` (line 4:0)"
+      end
+
+      def test_build_hover_content_without_method_calls
+        hover = create_hover_with_root(nil)
+        method_calls = []
+
+        content = hover.send(:build_hover_content, "user", method_calls)
+
+        assert_includes content, "Variable: `user`"
+        assert_includes content, "No method calls found for this variable."
+        refute_includes content, "Method calls on this variable:"
+      end
+
+      def test_build_hover_content_with_instance_variable
+        hover = create_hover_with_root(nil)
+        method_calls = [
+          { method: "upcase", location: "3:2" },
+          { method: "downcase", location: "4:2" }
+        ]
+
+        content = hover.send(:build_hover_content, "@user", method_calls)
+
+        assert_includes content, "Variable: `@user`"
+        assert_includes content, "`@user.upcase` (line 3:2)"
+        assert_includes content, "`@user.downcase` (line 4:2)"
       end
 
       private

@@ -76,14 +76,13 @@ module RubyLsp
 
           # Output debug logs
           log_method_calls(variable_name, method_calls)
+
+          # Build hover content
+          content = build_hover_content(variable_name, method_calls)
+          @response_builder.push(content, category: :guesser)
         else
           warn "[Ruby LSP Guesser] Warning: Could not extract variable name from node"
         end
-
-        @response_builder.push(
-          "**Ruby LSP Guesser**\n\nThis is a hover tooltip from ruby-lsp-guesser!",
-          category: :guesser
-        )
       end
 
       def extract_variable_name(node)
@@ -184,6 +183,22 @@ module RubyLsp
         end
 
         warn "#{"=" * 80}\n"
+      end
+
+      def build_hover_content(variable_name, method_calls)
+        content = "**Ruby LSP Guesser**\n\n"
+        content += "Variable: `#{variable_name}`\n\n"
+
+        if method_calls.empty?
+          content += "No method calls found for this variable."
+        else
+          content += "**Method calls on this variable:**\n\n"
+          method_calls.each do |call|
+            content += "- `#{variable_name}.#{call[:method]}` (line #{call[:location]})\n"
+          end
+        end
+
+        content
       end
     end
   end
