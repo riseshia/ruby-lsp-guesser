@@ -8,6 +8,8 @@ require "stringio"
 module RubyLsp
   module Guesser
     class TestHover < Minitest::Test
+      include RubyLsp::TestHelper
+
       def setup
         @hover = nil
       end
