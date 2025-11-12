@@ -17,8 +17,8 @@ module RubyLsp
         VERSION
       end
 
-      def activate(global_state, message_queue)
-        # Activation logic if needed
+      def activate(_global_state, _message_queue)
+        warn("[RubyLspGuesser] Activating RubyLspGuesser LSP addon #{VERSION}.")
       end
 
       def deactivate
