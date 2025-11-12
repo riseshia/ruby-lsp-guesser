@@ -2,7 +2,20 @@
 
 ## Project Overview
 
-Ruby LSP Guesser is a Ruby LSP addon that provides enhanced hover tooltips for Ruby code. When hovering over variables, constants, or other code elements, it displays information and logs method calls for debugging purposes.
+Ruby LSP Guesser is a Ruby LSP addon that provides **heuristic type inference** without requiring explicit type annotations. The goal is to achieve a "useful enough" development experience by prioritizing practical type hints over perfect accuracy.
+
+**Core Approach:**
+- Infers types from **method call patterns** (inspired by duck typing)
+- Uses variable naming conventions as hints
+- Leverages RBS definitions when available
+- Focuses on pragmatic developer experience rather than type correctness
+
+**Key Example:**
+```ruby
+def fetch_comments(recipe)
+  recipe.comments  # If 'comments' method exists only in Recipe class,
+end                # infer recipe type as Recipe instance
+```
 
 **Key Information:**
 - **Language:** Ruby 3.3.0+
@@ -44,17 +57,14 @@ ruby-lsp-guesser/
 - Creates hover listeners via `create_hover_listener`
 
 ### 2. Hover (lib/ruby_lsp/ruby_lsp_guesser/hover.rb)
-- Main hover provider implementation
-- Listens to AST node events for:
-  - Local variables
-  - Instance variables
-  - Class variables
-  - Global variables
-  - Constants
-  - Constant paths
-- Traverses the AST to find method calls on hovered variables
-- Outputs debug logs with method call information
-- Pushes hover content to the response builder
+- **Purpose:** Collects method call patterns to enable type inference
+- Listens to AST node events for variables and constants:
+  - Local/instance/class/global variables
+  - Constants and constant paths
+- **Key functionality:**
+  - Traverses AST to find all method calls on each variable
+  - Logs method call information for type inference analysis
+  - This data will be used to guess types heuristically (e.g., if `recipe.comments` is found and `comments` method exists only in `Recipe` class, infer `recipe` is a `Recipe` instance)
 
 ## Development Workflow
 
@@ -156,14 +166,31 @@ bundle exec rubocop -a
 bundle exec rubocop -A
 ```
 
-## Debug Logging
+## Type Inference Strategy
 
-The hover provider outputs detailed debug information to STDERR:
-- Variable name being hovered
-- List of method calls found on that variable
-- Location information for each method call
+### Method Call Pattern Collection
 
-This is the core feature being developed - the goal is to eventually use this information to provide intelligent type guessing and better hover tooltips.
+The hover provider collects method call patterns by outputting to STDERR:
+- Variable name being analyzed
+- List of method calls on that variable
+- Location information for each call
+
+### Heuristic Type Inference (Planned)
+
+This collected data enables type guessing through:
+
+1. **Method name uniqueness analysis:**
+   - If `recipe.comments` is found and `comments` method exists only in `Recipe` class → infer `recipe` type as `Recipe`
+   - Works best in large applications where method names tend to be unique
+
+2. **Variable naming conventions:**
+   - Plural names (`users`, `items`) → likely Array
+   - Suffixes like `_id`, `_count`, `_num` → likely Integer
+   - Suffixes like `_name`, `_title` → likely String
+
+3. **RBS integration:**
+   - Use RBS definitions as base type information
+   - Fill gaps with heuristic inference
 
 ## Testing Strategy
 
@@ -174,9 +201,9 @@ This is the core feature being developed - the goal is to eventually use this in
 
 ## Notes for Claude
 
-- **Before running any commands:** Always check what tests and linting rules exist first
+- **Project Goal:** This is NOT just a hover provider - it's a **heuristic type inference system** that collects method call patterns to guess types without explicit annotations
+- **Core Philosophy:** Pragmatic type hints over perfect accuracy
+- **Before running commands:** Always run `rake test` and `rake rubocop` for validation
 - **Test-driven:** Run tests before and after making changes
-- **Respect RuboCop:** Follow the existing code style
-- **Be explicit:** Ruby LSP APIs can be finicky - verify changes with tests
 - **AST traversal:** When working with Prism nodes, be careful with node types and methods
-- **Don't execute random commands:** Use `rake test` and `rake rubocop` for validation
+- **Type inference focus:** When adding features, consider how they contribute to collecting data for type guessing
