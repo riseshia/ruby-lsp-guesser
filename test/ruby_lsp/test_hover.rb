@@ -8,6 +8,19 @@ module RubyLsp
     class TestHover < Minitest::Test
       include RubyLsp::TestHelper
 
+      def test_hover_on_local_variable
+        source = <<~RUBY
+          def foo
+            user = "John"
+            user
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 2, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
       def test_hover_on_instance_variable
         source = <<~RUBY
           class Foo
