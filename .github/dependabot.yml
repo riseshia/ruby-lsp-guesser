@@ -1,0 +1,16 @@
+# Configure Dependabot to keep GitHub Actions and bundler dependencies up to date
+version: 2
+updates:
+  # Monitor GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Monitor bundler dependencies
+  - package-ecosystem: "bundler"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
