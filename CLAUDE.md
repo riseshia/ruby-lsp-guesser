@@ -103,6 +103,39 @@ bundle exec rake install
 bin/console
 ```
 
+## TDD Development Workflow
+
+This project follows strict Test-Driven Development (TDD) practices based on Kent Beck's principles.
+
+### TDD Cycle: Red → Green → Refactor
+
+1. **Red:** Write a failing test first
+2. **Green:** Write minimal code to make the test pass
+3. **Refactor:** Clean up code while keeping tests green
+4. **Commit:** Only commit when all tests pass
+
+### Automatic TDD Mode with `/go` Command
+
+**CRITICAL:** When implementing features or fixing bugs:
+
+1. **ALWAYS use `/go` command first** - Do not implement directly
+2. The `/go` command will automatically:
+   - Find the next unmarked test in `plan.md`
+   - Mark it as [~] (in progress)
+   - Write the test first (Red phase)
+   - Implement minimal code to pass (Green phase)
+   - Refactor if needed
+   - Mark it as [x] (completed)
+   - Commit with clear message
+
+### Code Quality Standards
+
+- Eliminate duplication ruthlessly
+- Express intent clearly through naming
+- Keep methods small and focused
+- Use the simplest solution that works
+- Separate structural changes from behavioral changes
+
 ## Important Conventions
 
 1. **Language:** **ALL code-related content MUST be written in English:**
@@ -128,20 +161,71 @@ bin/console
 
 ## Before Making Changes
 
-1. **Always run tests first:**
+**Pre-Implementation Checklist:**
+
+1. **Check for `/go` command** - If implementing features/fixes, use `/go` instead of direct implementation
+2. **Read relevant files in parallel** - Use multiple Read tool calls together
+3. **Always run tests first:**
    ```bash
    rake test
    ```
-
-2. **Check RuboCop:**
+4. **Check RuboCop:**
    ```bash
    rake rubocop
    ```
-
-3. **Run all checks:**
+5. **Run all checks:**
    ```bash
    rake
    ```
+
+**Pre-Commit Checklist:**
+
+1. **Run linter on changed files FIRST** - Fix violations before committing
+   ```bash
+   bin/rubocop <changed_files>
+   ```
+2. **Run all tests** - Ensure nothing breaks
+   ```bash
+   rake test
+   ```
+3. **Check for untracked files** - Add relevant new files
+   ```bash
+   git status
+   ```
+4. **Make ONE atomic commit** - Group all related changes together (code + linting + new files)
+
+## Commit Strategy
+
+### Atomic Commits
+
+**Always group related changes into single commits:**
+
+✅ **Good** - Single commit:
+```
+"Add method call tracking for type inference"
+- Implement AST traversal
+- Add logging for method calls
+- Fix RuboCop violations
+- Add test cases
+```
+
+❌ **Bad** - Multiple commits:
+```
+"Add method call tracking"
+"Fix rubocop violations"
+"Add tests"
+```
+
+### Linter-First Strategy
+
+**CRITICAL:** Run linter BEFORE committing to avoid separate "fix linting" commits.
+
+**Workflow:**
+1. After editing any Ruby file, run: `bin/rubocop <file_path>`
+2. If violations found, fix them immediately
+3. Commit once with all changes together (code + linting fixes)
+
+**Never create separate "Fix rubocop" commits** - always fix linting issues in the same commit as the code change.
 
 ## Common Tasks
 
@@ -201,9 +285,42 @@ This collected data enables type guessing through:
 
 ## Notes for Claude
 
+### Project Understanding
+
 - **Project Goal:** This is NOT just a hover provider - it's a **heuristic type inference system** that collects method call patterns to guess types without explicit annotations
 - **Core Philosophy:** Pragmatic type hints over perfect accuracy
-- **Before running commands:** Always run `rake test` and `rake rubocop` for validation
-- **Test-driven:** Run tests before and after making changes
-- **AST traversal:** When working with Prism nodes, be careful with node types and methods
 - **Type inference focus:** When adding features, consider how they contribute to collecting data for type guessing
+
+### Development Process
+
+- **TDD is mandatory:** Use `/go` command for implementations, follow Red-Green-Refactor cycle
+- **Linter-first:** Run `bin/rubocop` on changed files BEFORE committing
+- **Atomic commits:** Group related changes (code + tests + linting) into single commits
+- **Test-driven:** Run `rake test` before and after making changes
+- **AST traversal:** When working with Prism nodes, be careful with node types and methods
+
+### TodoWrite Usage
+
+**Skip TodoWrite for simple tasks** (single file, 1-2 steps, simple fixes)
+
+**Use TodoWrite only for complex tasks:**
+- 3+ distinct files need changes
+- Multiple independent systems affected
+- User explicitly lists multiple tasks
+- Complex multi-step requiring research + design + implementation
+
+**Rule:** Can you complete in one focused session without tracking? → No TodoWrite
+
+### Parallel Execution
+
+**ALWAYS execute operations in parallel when there are no dependencies:**
+
+✅ **Must parallelize:**
+- Reading multiple files: `Read(file1.rb) + Read(file2.rb)` together
+- Git inspection: `git status + git diff + git log` together
+- Independent searches: `Glob + Grep` together
+
+❌ **Only sequential when TRUE dependencies exist:**
+- Edit needs Read first (tool requirement)
+- Push needs commit first (data dependency)
+- Commit needs tests to pass first
