@@ -12,43 +12,32 @@ module RubyLsp
       end
 
       def on_constant_read_node_enter(node)
-        warn "[Ruby LSP Guesser] on_constant_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_constant_path_node_enter(node)
-        warn "[Ruby LSP Guesser] on_constant_path_node_enter called"
         add_hover_content(node)
       end
 
       def on_local_variable_read_node_enter(node)
-        warn "[Ruby LSP Guesser] on_local_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_instance_variable_read_node_enter(node)
-        warn "[Ruby LSP Guesser] on_instance_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_class_variable_read_node_enter(node)
-        warn "[Ruby LSP Guesser] on_class_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_global_variable_read_node_enter(node)
-        warn "[Ruby LSP Guesser] on_global_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       private
 
       def register_listeners(dispatcher)
-        warn "\n#{"=" * 80}"
-        warn "[Ruby LSP Guesser] Registering hover listeners"
-        warn "  Listeners: local_variable, instance_variable, class_variable, global_variable, constant"
-        warn "#{"=" * 80}\n"
-
         dispatcher.register(
           self,
           :on_constant_read_node_enter,
@@ -61,28 +50,13 @@ module RubyLsp
       end
 
       def add_hover_content(node)
-        warn "\n#{"=" * 80}"
-        warn "[Ruby LSP Guesser] Hover event triggered!"
-        warn "  Node type: #{node.class}"
-        warn "  Node location: #{node.location.start_line}:#{node.location.start_column}"
-        warn "#{"=" * 80}\n"
-
         # Get variable name from the node
         variable_name = extract_variable_name(node)
+        return unless variable_name
 
-        if variable_name
-          # Find method calls on this variable
-          method_calls = find_method_calls_for_variable(variable_name)
-
-          # Output debug logs
-          log_method_calls(variable_name, method_calls)
-
-          # Build hover content
-          content = build_hover_content(variable_name, method_calls)
-          @response_builder.push(content, category: :guesser)
-        else
-          warn "[Ruby LSP Guesser] Warning: Could not extract variable name from node"
-        end
+        # Build simple hover content with variable name
+        content = build_hover_content(variable_name)
+        @response_builder.push(content, category: :documentation)
       end
 
       def extract_variable_name(node)
@@ -102,103 +76,8 @@ module RubyLsp
         end
       end
 
-      def find_method_calls_for_variable(variable_name)
-        method_calls = []
-
-        # Get the root node from node_context
-        return method_calls unless @node_context.respond_to?(:node)
-
-        root_node = find_root_node(@node_context.node)
-        return method_calls unless root_node
-
-        # Traverse the AST to find method calls
-        traverse_for_method_calls(root_node, variable_name, method_calls)
-
-        method_calls
-      end
-
-      def find_root_node(node)
-        current = node
-        current = current.parent while current.respond_to?(:parent) && current.parent
-        current
-      end
-
-      def traverse_for_method_calls(node, variable_name, method_calls)
-        return unless node
-
-        # Check if this is a call node with the variable as receiver
-        if node.is_a?(Prism::CallNode)
-          receiver = node.receiver
-
-          if receiver && matches_variable?(receiver, variable_name)
-            method_name = node.name.to_s
-            location = "#{node.location.start_line}:#{node.location.start_column}"
-            method_calls << { method: method_name, location: location }
-          end
-        end
-
-        # Recursively traverse child nodes
-        if node.respond_to?(:compact_child_nodes)
-          node.compact_child_nodes.each do |child|
-            traverse_for_method_calls(child, variable_name, method_calls)
-          end
-        elsif node.respond_to?(:child_nodes)
-          node.child_nodes.compact.each do |child|
-            traverse_for_method_calls(child, variable_name, method_calls)
-          end
-        end
-      end
-
-      def matches_variable?(receiver, variable_name)
-        case receiver
-        when Prism::LocalVariableReadNode
-          receiver.name.to_s == variable_name
-        when Prism::InstanceVariableReadNode
-          receiver.name.to_s == variable_name
-        when Prism::ClassVariableReadNode
-          receiver.name.to_s == variable_name
-        when Prism::GlobalVariableReadNode
-          receiver.name.to_s == variable_name
-        when Prism::ConstantReadNode
-          receiver.name.to_s == variable_name
-        when Prism::ConstantPathNode
-          receiver.slice == variable_name
-        else
-          false
-        end
-      end
-
-      def log_method_calls(variable_name, method_calls)
-        warn "\n#{"=" * 80}"
-        warn "[Ruby LSP Guesser] Method calls on variable: #{variable_name}"
-        warn "=" * 80
-
-        if method_calls.empty?
-          warn "No method calls found for '#{variable_name}'"
-        else
-          warn "Found #{method_calls.size} method call(s):"
-          method_calls.each_with_index do |call, index|
-            warn "  #{index + 1}. #{variable_name}.#{call[:method]} (at line #{call[:location]})"
-          end
-        end
-
-        warn "#{"=" * 80}\n"
-      end
-
-      def build_hover_content(variable_name, method_calls)
-        content = "**Ruby LSP Guesser**\n\n"
-        content += "Variable: `#{variable_name}`\n\n"
-
-        if method_calls.empty?
-          content += "No method calls found for this variable."
-        else
-          content += "**Method calls on this variable:**\n\n"
-          method_calls.each do |call|
-            content += "- `#{variable_name}.#{call[:method]}` (line #{call[:location]})\n"
-          end
-        end
-
-        content
+      def build_hover_content(variable_name)
+        "**Ruby LSP Guesser**\n\nVariable: `#{variable_name}`"
       end
     end
   end
