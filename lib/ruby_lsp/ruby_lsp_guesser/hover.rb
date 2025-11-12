@@ -12,32 +12,43 @@ module RubyLsp
       end
 
       def on_constant_read_node_enter(node)
+        warn "[Ruby LSP Guesser] on_constant_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_constant_path_node_enter(node)
+        warn "[Ruby LSP Guesser] on_constant_path_node_enter called"
         add_hover_content(node)
       end
 
       def on_local_variable_read_node_enter(node)
+        warn "[Ruby LSP Guesser] on_local_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_instance_variable_read_node_enter(node)
+        warn "[Ruby LSP Guesser] on_instance_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_class_variable_read_node_enter(node)
+        warn "[Ruby LSP Guesser] on_class_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       def on_global_variable_read_node_enter(node)
+        warn "[Ruby LSP Guesser] on_global_variable_read_node_enter called"
         add_hover_content(node)
       end
 
       private
 
       def register_listeners(dispatcher)
+        warn "\n#{"=" * 80}"
+        warn "[Ruby LSP Guesser] Registering hover listeners"
+        warn "  Listeners: local_variable, instance_variable, class_variable, global_variable, constant"
+        warn "#{"=" * 80}\n"
+
         dispatcher.register(
           self,
           :on_constant_read_node_enter,
@@ -50,6 +61,12 @@ module RubyLsp
       end
 
       def add_hover_content(node)
+        warn "\n#{"=" * 80}"
+        warn "[Ruby LSP Guesser] Hover event triggered!"
+        warn "  Node type: #{node.class}"
+        warn "  Node location: #{node.location.start_line}:#{node.location.start_column}"
+        warn "#{"=" * 80}\n"
+
         # Get variable name from the node
         variable_name = extract_variable_name(node)
 
@@ -59,6 +76,8 @@ module RubyLsp
 
           # Output debug logs
           log_method_calls(variable_name, method_calls)
+        else
+          warn "[Ruby LSP Guesser] Warning: Could not extract variable name from node"
         end
 
         @response_builder.push(
