@@ -19,6 +19,13 @@ module RubyLsp
 
       def activate(_global_state, _message_queue)
         warn("[RubyLspGuesser] Activating RubyLspGuesser LSP addon #{VERSION}.")
+
+        # Extend Ruby LSP's ALLOWED_TARGETS to support local variables for hover
+        RubyLsp::Listeners::Hover::ALLOWED_TARGETS.push(
+          Prism::LocalVariableReadNode,
+          Prism::LocalVariableWriteNode,
+          Prism::LocalVariableTargetNode
+        ).uniq!
       end
 
       def deactivate
