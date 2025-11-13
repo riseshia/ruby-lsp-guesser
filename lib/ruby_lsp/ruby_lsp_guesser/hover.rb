@@ -23,6 +23,14 @@ module RubyLsp
         add_hover_content(node)
       end
 
+      def on_local_variable_write_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_local_variable_target_node_enter(node)
+        add_hover_content(node)
+      end
+
       def on_instance_variable_read_node_enter(node)
         add_hover_content(node)
       end
@@ -43,6 +51,8 @@ module RubyLsp
           :on_constant_read_node_enter,
           :on_constant_path_node_enter,
           :on_local_variable_read_node_enter,
+          :on_local_variable_write_node_enter,
+          :on_local_variable_target_node_enter,
           :on_instance_variable_read_node_enter,
           :on_class_variable_read_node_enter,
           :on_global_variable_read_node_enter
