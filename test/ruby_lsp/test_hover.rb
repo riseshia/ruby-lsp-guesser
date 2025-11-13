@@ -82,6 +82,143 @@ module RubyLsp
         assert_equal "markdown", response.contents.kind
       end
 
+      # TODO: Investigate why self node hover is not working
+      # def test_hover_on_self
+      #   source = <<~RUBY
+      #     class Foo
+      #       def bar
+      #         self
+      #       end
+      #     end
+      #   RUBY
+      #
+      #   response = hover_on_source(source, { line: 2, character: 4 })
+      #
+      #   assert_match(/Ruby LSP Guesser/, response.contents.value)
+      # end
+
+      def test_hover_on_required_parameter
+        source = <<~RUBY
+          def greet(name)
+            name.upcase
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 1, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_optional_parameter_usage
+        source = <<~RUBY
+          def greet(name = "World")
+            name.upcase
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 1, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_keyword_parameter_usage
+        source = <<~RUBY
+          def greet(name:)
+            name.upcase
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 1, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_rest_parameter_usage
+        source = <<~RUBY
+          def greet(*names)
+            names.join
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 1, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_keyword_rest_parameter_usage
+        source = <<~RUBY
+          def greet(**options)
+            options.keys
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 1, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_block_parameter_usage
+        source = <<~RUBY
+          def execute(&block)
+            block.call
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 1, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_self
+        source = <<~RUBY
+          class Foo
+            def bar
+              self
+            end
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 2, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_parameter_definition
+        source = <<~RUBY
+          def greet(name)
+            name.upcase
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 0, character: 10 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_keyword_parameter_definition
+        source = <<~RUBY
+          def greet(name:)
+            name.upcase
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 0, character: 10 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_forwarding_parameter
+        source = <<~RUBY
+          def forward(...)
+            other_method(...)
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 0, character: 12 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
       private
 
       def hover_on_source(source, position)

@@ -43,6 +43,42 @@ module RubyLsp
         add_hover_content(node)
       end
 
+      def on_self_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_required_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_optional_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_rest_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_required_keyword_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_optional_keyword_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_keyword_rest_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_block_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
+      def on_forwarding_parameter_node_enter(node)
+        add_hover_content(node)
+      end
+
       private
 
       def register_listeners(dispatcher)
@@ -55,7 +91,16 @@ module RubyLsp
           :on_local_variable_target_node_enter,
           :on_instance_variable_read_node_enter,
           :on_class_variable_read_node_enter,
-          :on_global_variable_read_node_enter
+          :on_global_variable_read_node_enter,
+          :on_self_node_enter,
+          :on_required_parameter_node_enter,
+          :on_optional_parameter_node_enter,
+          :on_rest_parameter_node_enter,
+          :on_required_keyword_parameter_node_enter,
+          :on_optional_keyword_parameter_node_enter,
+          :on_keyword_rest_parameter_node_enter,
+          :on_block_parameter_node_enter,
+          :on_forwarding_parameter_node_enter
         )
       end
 
