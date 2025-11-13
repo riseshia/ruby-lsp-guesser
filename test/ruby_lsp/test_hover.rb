@@ -169,6 +169,56 @@ module RubyLsp
         assert_match(/Ruby LSP Guesser/, response.contents.value)
       end
 
+      def test_hover_on_self
+        source = <<~RUBY
+          class Foo
+            def bar
+              self
+            end
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 2, character: 4 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_parameter_definition
+        source = <<~RUBY
+          def greet(name)
+            name.upcase
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 0, character: 10 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_keyword_parameter_definition
+        source = <<~RUBY
+          def greet(name:)
+            name.upcase
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 0, character: 10 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
+      def test_hover_on_forwarding_parameter
+        source = <<~RUBY
+          def forward(...)
+            other_method(...)
+          end
+        RUBY
+
+        response = hover_on_source(source, { line: 0, character: 12 })
+
+        assert_match(/Ruby LSP Guesser/, response.contents.value)
+      end
+
       private
 
       def hover_on_source(source, position)
