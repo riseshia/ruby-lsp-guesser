@@ -10,6 +10,28 @@ module RubyLsp
         @index.clear
       end
 
+      def test_top_level_variable_method_calls
+        source = <<~RUBY
+          user = get_user
+          user.name
+          user.email
+        RUBY
+
+        parse_and_visit(source, "/test/file.rb")
+
+        # user is defined at line 1, column 0 (top-level)
+        calls = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "user",
+          def_line: 1,
+          def_column: 0
+        )
+
+        assert_equal 2, calls.size
+        method_names = calls.map { |c| c[:method] }.sort
+        assert_equal ["email", "name"], method_names
+      end
+
       def test_local_variable_method_calls
         source = <<~RUBY
           def foo
@@ -253,6 +275,54 @@ module RubyLsp
 
         assert_equal 1, calls_y.size
         assert_equal "to_s", calls_y[0][:method]
+      end
+
+      def test_class_body_scope
+        source = <<~RUBY
+          class Foo
+            config = load_config
+            config.validate
+            config.apply
+          end
+        RUBY
+
+        parse_and_visit(source, "/test/file.rb")
+
+        # config is defined at line 2, column 2 (class body, not in a method)
+        calls = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "config",
+          def_line: 2,
+          def_column: 2
+        )
+
+        assert_equal 2, calls.size
+        method_names = calls.map { |c| c[:method] }.sort
+        assert_equal ["apply", "validate"], method_names
+      end
+
+      def test_module_body_scope
+        source = <<~RUBY
+          module Bar
+            settings = load_settings
+            settings.merge
+            settings.freeze
+          end
+        RUBY
+
+        parse_and_visit(source, "/test/file.rb")
+
+        # settings is defined at line 2, column 2 (module body, not in a method)
+        calls = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "settings",
+          def_line: 2,
+          def_column: 2
+        )
+
+        assert_equal 2, calls.size
+        method_names = calls.map { |c| c[:method] }.sort
+        assert_equal ["freeze", "merge"], method_names
       end
 
       private
