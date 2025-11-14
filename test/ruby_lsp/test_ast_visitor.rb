@@ -329,7 +329,7 @@ module RubyLsp
 
       def parse_and_visit(source, file_path)
         result = Prism.parse(source)
-        visitor = Addon::ASTVisitor.new(file_path)
+        visitor = ASTVisitor.new(file_path)
         result.value.accept(visitor)
       end
     end
