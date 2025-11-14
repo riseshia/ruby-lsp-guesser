@@ -161,6 +161,103 @@ module RubyLsp
 
         assert_equal [], calls
       end
+
+      def test_clear_file_removes_only_specified_file
+        # Add method calls for first file
+        @index.add_method_call(
+          file_path: "/test/file1.rb",
+          var_name: "user",
+          def_line: 1,
+          def_column: 0,
+          method_name: "name",
+          call_line: 2,
+          call_column: 0
+        )
+
+        # Add method calls for second file
+        @index.add_method_call(
+          file_path: "/test/file2.rb",
+          var_name: "post",
+          def_line: 1,
+          def_column: 0,
+          method_name: "title",
+          call_line: 2,
+          call_column: 0
+        )
+
+        assert_equal 2, @index.size
+
+        # Clear only first file
+        @index.clear_file("/test/file1.rb")
+
+        # First file should be cleared
+        calls1 = @index.get_method_calls(
+          file_path: "/test/file1.rb",
+          var_name: "user",
+          def_line: 1,
+          def_column: 0
+        )
+        assert_equal [], calls1
+
+        # Second file should remain
+        calls2 = @index.get_method_calls(
+          file_path: "/test/file2.rb",
+          var_name: "post",
+          def_line: 1,
+          def_column: 0
+        )
+        assert_equal 1, calls2.size
+        assert_equal "title", calls2[0][:method]
+
+        assert_equal 1, @index.size
+      end
+
+      def test_clear_file_with_multiple_variables
+        # Add multiple variables in the same file
+        @index.add_method_call(
+          file_path: "/test/file.rb",
+          var_name: "user",
+          def_line: 1,
+          def_column: 0,
+          method_name: "name",
+          call_line: 2,
+          call_column: 0
+        )
+
+        @index.add_method_call(
+          file_path: "/test/file.rb",
+          var_name: "post",
+          def_line: 5,
+          def_column: 0,
+          method_name: "title",
+          call_line: 6,
+          call_column: 0
+        )
+
+        assert_equal 2, @index.size
+
+        # Clear the file
+        @index.clear_file("/test/file.rb")
+
+        # All variables from the file should be cleared
+        assert_equal 0, @index.size
+
+        calls1 = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "user",
+          def_line: 1,
+          def_column: 0
+        )
+        assert_equal [], calls1
+
+        calls2 = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "post",
+          def_line: 5,
+          def_column: 0
+        )
+        assert_equal [], calls2
+      end
     end
   end
 end

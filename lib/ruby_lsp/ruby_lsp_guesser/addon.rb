@@ -54,6 +54,28 @@ module RubyLsp
         # Deactivation logic if needed
       end
 
+      # Handle file change notifications from LSP client
+      # Re-index files when they are created, updated, or deleted
+      def workspace_did_change_watched_files(changes)
+        changes.each do |change|
+          uri = URI(change[:uri])
+          file_path = uri.to_standardized_path
+          next if file_path.nil? || File.directory?(file_path)
+          next unless file_path.end_with?(".rb")
+
+          case change[:type]
+          when Constant::FileChangeType::CREATED, Constant::FileChangeType::CHANGED
+            # Re-index the file by traversing its AST
+            reindex_file(file_path)
+          when Constant::FileChangeType::DELETED
+            # Clear index entries for the deleted file
+            clear_file_index(file_path)
+          end
+        rescue StandardError => e
+          warn("[RubyLspGuesser] Error processing file change #{uri}: #{e.message}")
+        end
+      end
+
       def create_hover_listener(response_builder, node_context, dispatcher)
         Hover.new(response_builder, node_context, dispatcher)
       end
@@ -104,6 +126,33 @@ module RubyLsp
         result.value.accept(visitor)
       rescue StandardError => e
         warn("[RubyLspGuesser] Error parsing #{uri}: #{e.message}")
+      end
+
+      # Re-index a single file by traversing its AST
+      def reindex_file(file_path)
+        return unless File.exist?(file_path)
+
+        # First, clear existing index entries for this file
+        clear_file_index(file_path)
+
+        # Then, re-traverse the file's AST
+        source = File.read(file_path)
+        result = Prism.parse(source)
+
+        visitor = ASTVisitor.new(file_path)
+        result.value.accept(visitor)
+
+        warn("[RubyLspGuesser] Re-indexed file: #{file_path}")
+      rescue StandardError => e
+        warn("[RubyLspGuesser] Error re-indexing #{file_path}: #{e.message}")
+      end
+
+      # Clear all index entries for a specific file
+      def clear_file_index(file_path)
+        VariableIndex.instance.clear_file(file_path)
+        warn("[RubyLspGuesser] Cleared index for file: #{file_path}")
+      rescue StandardError => e
+        warn("[RubyLspGuesser] Error clearing index for #{file_path}: #{e.message}")
       end
     end
   end

@@ -65,6 +65,14 @@ module RubyLsp
         end
       end
 
+      # Clear all index entries for a specific file
+      # @param file_path [String] the file path to clear
+      def clear_file(file_path)
+        @mutex.synchronize do
+          @index.delete_if { |key, _value| key.start_with?("#{file_path}:") }
+        end
+      end
+
       private
 
       def build_key(file_path, var_name, line, column)
