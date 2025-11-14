@@ -29,7 +29,7 @@ module RubyLsp
 
         assert_equal 2, calls.size
         method_names = calls.map { |c| c[:method] }.sort
-        assert_equal ["email", "name"], method_names
+        assert_equal %w[email name], method_names
       end
 
       def test_local_variable_method_calls
@@ -53,7 +53,7 @@ module RubyLsp
 
         assert_equal 2, calls.size
         method_names = calls.map { |c| c[:method] }.sort
-        assert_equal ["email", "name"], method_names
+        assert_equal %w[email name], method_names
       end
 
       def test_parameter_method_calls
@@ -76,7 +76,7 @@ module RubyLsp
 
         assert_equal 2, calls.size
         method_names = calls.map { |c| c[:method] }.sort
-        assert_equal ["strip", "upcase"], method_names
+        assert_equal %w[strip upcase], method_names
       end
 
       def test_scoped_variables
@@ -298,7 +298,7 @@ module RubyLsp
 
         assert_equal 2, calls.size
         method_names = calls.map { |c| c[:method] }.sort
-        assert_equal ["apply", "validate"], method_names
+        assert_equal %w[apply validate], method_names
       end
 
       def test_module_body_scope
@@ -322,7 +322,7 @@ module RubyLsp
 
         assert_equal 2, calls.size
         method_names = calls.map { |c| c[:method] }.sort
-        assert_equal ["freeze", "merge"], method_names
+        assert_equal %w[freeze merge], method_names
       end
 
       private
