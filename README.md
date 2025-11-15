@@ -4,9 +4,10 @@ A Ruby LSP addon that provides hover tooltips with helpful information.
 
 ## Features
 
-- **Hover tooltips**: Display informative messages when hovering over Ruby code elements
-- Supports method calls, constants, and constant paths
-- Easy to integrate with any Ruby LSP-enabled editor
+- **Type Inference**: Automatically infers variable types based on method call patterns
+- **Hover Tooltips**: Shows inferred types when hovering over variables
+- **Heuristic Approach**: Works without type annotations by analyzing method usage
+- **Smart Matching**: Finds classes that have all the methods called on a variable
 
 ## Installation
 
@@ -30,9 +31,38 @@ gem install ruby-lsp-guesser
 
 ## Usage
 
-Once installed, the addon will automatically be loaded by Ruby LSP. When you hover over method calls, constants, or constant paths in your Ruby code, you'll see a tooltip with information from the guesser.
+Once installed, the addon will automatically be loaded by Ruby LSP. Hover over variables, parameters, or instance variables to see inferred types.
 
-The addon registers itself automatically and requires no additional configuration.
+### Example
+
+```ruby
+class Recipe
+  def ingredients
+    []
+  end
+
+  def steps
+    []
+  end
+end
+
+def process(recipe)
+  recipe.ingredients  # Hover over 'recipe' shows: Inferred type: Recipe
+  recipe.steps
+end
+```
+
+The addon analyzes method calls (`ingredients`, `steps`) and finds that only the `Recipe` class has both methods, so it infers the type as `Recipe`.
+
+### Debug Mode
+
+Enable debug mode to see method call information in the output:
+
+```bash
+export RUBY_LSP_GUESSER_DEBUG=1
+```
+
+In debug mode, the addon will log method calls to stderr, which can be helpful for troubleshooting type inference issues.
 
 ## Development
 

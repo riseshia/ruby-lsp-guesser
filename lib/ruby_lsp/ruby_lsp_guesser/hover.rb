@@ -106,7 +106,7 @@ module RubyLsp
         method_calls = collect_method_calls(variable_name, node)
 
         content = build_hover_content(variable_name, method_calls)
-        @response_builder.push(content, category: :documentation)
+        @response_builder.push(content, category: :documentation) if content
       end
 
       def extract_variable_name(node)
@@ -238,19 +238,37 @@ module RubyLsp
         # Try to infer type if we have method calls and global_state is available
         if !method_calls.empty? && @global_state
           inferred_type = infer_type_from_methods(method_calls)
+
+          # Debug logging for method calls
+          if debug_mode? && !method_calls.empty?
+            warn("[RubyLspGuesser] Variable '#{variable_name}' method calls: #{method_calls.inspect}")
+          end
+
           return inferred_type if inferred_type
         end
 
-        # Fallback: show method calls
-        if method_calls.empty?
-          "No method calls found."
-        else
-          content = "Method calls:\n"
-          method_calls.each do |method_name|
-            content += "- `#{method_name}`\n"
+        # Fallback: show method calls only in debug mode, otherwise show nothing
+        if debug_mode?
+          if method_calls.empty?
+            warn("[RubyLspGuesser] Variable '#{variable_name}': No method calls found")
+            "No method calls found."
+          else
+            warn("[RubyLspGuesser] Variable '#{variable_name}' method calls: #{method_calls.inspect}")
+            content = "Method calls:\n"
+            method_calls.each do |method_name|
+              content += "- `#{method_name}`\n"
+            end
+            content
           end
-          content
+        else
+          # In production mode, don't show anything when type cannot be inferred
+          nil
         end
+      end
+
+      # Check if debug mode is enabled via environment variable
+      def debug_mode?
+        ENV["RUBY_LSP_GUESSER_DEBUG"] == "1" || ENV["RUBY_LSP_GUESSER_DEBUG"] == "true"
       end
 
       # Infer type from method calls using TypeMatcher

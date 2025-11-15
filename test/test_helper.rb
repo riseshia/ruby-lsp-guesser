@@ -6,3 +6,6 @@ require "ruby_lsp/test_helper"
 require "uri"
 
 require "minitest/autorun"
+
+# Enable debug mode for tests
+ENV["RUBY_LSP_GUESSER_DEBUG"] = "1"
