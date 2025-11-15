@@ -375,6 +375,71 @@ module RubyLsp
         assert_equal %w[freeze validate], method_names
       end
 
+      def test_instance_variable_across_methods
+        source = <<~RUBY
+          class Hoge
+            def initialize
+              @var = 1
+              @var += 2
+            end
+
+            def some_method(a, b)
+              a.call_some
+              b.call_other
+              @var.hogehoge
+            end
+          end
+        RUBY
+
+        parse_and_visit(source, "/test/file.rb")
+
+        # @var is defined at line 3, column 4
+        calls = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "@var",
+          def_line: 3,
+          def_column: 4
+        )
+
+        # Should include hogehoge from line 10, and += operator from line 4
+        assert_operator calls.size, :>=, 1
+        method_names = calls.map { |c| c[:method] }
+        assert_includes method_names, "hogehoge"
+      end
+
+      def test_class_variable_across_methods
+        source = <<~RUBY
+          class Config
+            def self.init
+              @@count = 0
+            end
+
+            def self.increment
+              @@count += 1
+            end
+
+            def self.total
+              @@count.to_s
+            end
+          end
+        RUBY
+
+        parse_and_visit(source, "/test/file.rb")
+
+        # @@count is defined at line 3, column 4
+        calls = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "@@count",
+          def_line: 3,
+          def_column: 4
+        )
+
+        # Should include to_s from line 11, and += operator from line 7
+        assert_operator calls.size, :>=, 1
+        method_names = calls.map { |c| c[:method] }
+        assert_includes method_names, "to_s"
+      end
+
       private
 
       def parse_and_visit(source, file_path)
