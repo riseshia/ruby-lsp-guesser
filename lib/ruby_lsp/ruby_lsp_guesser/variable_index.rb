@@ -51,6 +51,64 @@ module RubyLsp
         end
       end
 
+      # Get all method calls for a variable by name only (searches all occurrences)
+      # @param var_name [String] the variable name
+      # @return [Array<String>] array of unique method names called on this variable
+      def get_method_calls_by_name(var_name:)
+        @mutex.synchronize do
+          method_names = []
+          @index.each do |key, calls|
+            # Check if the key contains the variable name
+            # Key format: "file_path:var_name:line:column"
+            # Extract var_name from the third-to-last position
+            parts = key.split(":")
+            next if parts.size < 4
+
+            extracted_var_name = parts[-3]
+            next unless extracted_var_name == var_name
+
+            calls.each do |call|
+              method_names << call[:method]
+            end
+          end
+          method_names.uniq
+        end
+      end
+
+      # Find all variable definitions matching the given name
+      # @param var_name [String] the variable name
+      # @return [Array<Hash>] array of definition info: { file_path:, def_line:, def_column: }
+      def find_definitions(var_name:)
+        @mutex.synchronize do
+          definitions = []
+          @index.each_key do |key|
+            # Key format: "file_path:var_name:line:column"
+            # We need to extract var_name, line, column from the end
+            # because file_path might contain colons
+
+            # Find the last 3 colon-separated parts
+            parts = key.split(":")
+            next if parts.size < 4 # Need at least file:var:line:col
+
+            column = parts[-1].to_i
+            line = parts[-2].to_i
+            extracted_var_name = parts[-3]
+
+            next unless extracted_var_name == var_name
+
+            # Everything before the last 3 parts is the file path
+            file_path = parts[0...-3].join(":")
+
+            definitions << {
+              file_path: file_path,
+              def_line: line,
+              def_column: column
+            }
+          end
+          definitions
+        end
+      end
+
       # Clear all index data (useful for testing)
       def clear
         @mutex.synchronize do
