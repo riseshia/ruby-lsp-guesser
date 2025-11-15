@@ -250,7 +250,10 @@ module RubyLsp
 
       def build_hover_content(variable_name, method_calls)
         content = "**Ruby LSP Guesser**\n\n"
-        content += "Variable: `#{variable_name}`\n\n"
+
+        # Determine the appropriate label based on the variable name
+        label = determine_variable_label(variable_name)
+        content += "#{label}: `#{variable_name}`\n\n"
 
         # Try to infer type if we have method calls and global_state is available
         if !method_calls.empty? && @global_state
@@ -272,6 +275,16 @@ module RubyLsp
         end
 
         content
+      end
+
+      # Determine the appropriate label for the identifier
+      def determine_variable_label(name)
+        return "Constant" if name =~ /^[A-Z]/
+        return "Instance variable" if name.start_with?("@") && !name.start_with?("@@")
+        return "Class variable" if name.start_with?("@@")
+        return "Global variable" if name.start_with?("$")
+
+        "Variable"
       end
 
       # Infer type from method calls using TypeMatcher
