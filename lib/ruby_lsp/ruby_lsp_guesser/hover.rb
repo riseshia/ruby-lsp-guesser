@@ -166,7 +166,7 @@ module RubyLsp
             def_line: best_match[:def_line],
             def_column: best_match[:def_column]
           )
-          calls.map { |call| call[:method] }
+          calls.map { |call| call[:method] }.uniq
         else
           # Fallback: show all matches but limit to avoid overwhelming output
           all_calls = index.get_method_calls_by_name(var_name: variable_name)
