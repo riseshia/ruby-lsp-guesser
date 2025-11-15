@@ -7,9 +7,10 @@ module RubyLsp
   module Guesser
     # Hover provider that returns a fixed message
     class Hover
-      def initialize(response_builder, node_context, dispatcher)
+      def initialize(response_builder, node_context, dispatcher, global_state = nil)
         @response_builder = response_builder
         @node_context = node_context
+        @global_state = global_state
 
         register_listeners(dispatcher)
       end
@@ -250,6 +251,16 @@ module RubyLsp
         content = "**Ruby LSP Guesser**\n\n"
         content += "Variable: `#{variable_name}`\n\n"
 
+        # Try to infer type if we have method calls and global_state is available
+        if !method_calls.empty? && @global_state
+          inferred_type = infer_type_from_methods(method_calls)
+          if inferred_type
+            content += inferred_type
+            return content
+          end
+        end
+
+        # Fallback: show method calls
         if method_calls.empty?
           content += "No method calls found."
         else
@@ -260,6 +271,26 @@ module RubyLsp
         end
 
         content
+      end
+
+      # Infer type from method calls using TypeMatcher
+      # Returns a formatted string with the inferred type, or nil if no inference is possible
+      def infer_type_from_methods(method_calls)
+        return nil unless @global_state
+
+        index = @global_state.index
+        matcher = TypeMatcher.new(index)
+        matching_types = matcher.find_matching_types(method_calls)
+
+        case matching_types.size
+        when 0
+          nil # No type inferred, fallback to method list
+        when 1
+          "**Inferred type:** `#{matching_types.first}`"
+        else
+          # Multiple matches - ambiguous
+          "**Ambiguous type** (could be: #{matching_types.map { |t| "`#{t}`" }.join(", ")})"
+        end
       end
     end
   end
