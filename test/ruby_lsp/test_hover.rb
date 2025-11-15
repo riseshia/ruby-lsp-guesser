@@ -60,17 +60,6 @@ module RubyLsp
         assert_match(/Ruby LSP Guesser/, response.contents.value)
       end
 
-      def test_hover_on_constant
-        source = <<~RUBY
-          CONST = "test"
-          CONST.upcase
-        RUBY
-
-        response = hover_on_source(source, { line: 1, character: 0 })
-
-        assert_match(/Ruby LSP Guesser/, response.contents.value)
-      end
-
       def test_hover_response_is_markdown
         source = <<~RUBY
           $global = "test"

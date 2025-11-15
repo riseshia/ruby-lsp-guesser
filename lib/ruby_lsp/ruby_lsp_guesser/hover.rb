@@ -16,14 +16,6 @@ module RubyLsp
         register_listeners(dispatcher)
       end
 
-      def on_constant_read_node_enter(node)
-        add_hover_content(node)
-      end
-
-      def on_constant_path_node_enter(node)
-        add_hover_content(node)
-      end
-
       def on_local_variable_read_node_enter(node)
         add_hover_content(node)
       end
@@ -89,8 +81,6 @@ module RubyLsp
       def register_listeners(dispatcher)
         dispatcher.register(
           self,
-          :on_constant_read_node_enter,
-          :on_constant_path_node_enter,
           :on_local_variable_read_node_enter,
           :on_local_variable_write_node_enter,
           :on_local_variable_target_node_enter,
@@ -141,10 +131,6 @@ module RubyLsp
           node.name.to_s
         when ::Prism::GlobalVariableReadNode
           node.name.to_s
-        when ::Prism::ConstantReadNode
-          node.name.to_s
-        when ::Prism::ConstantPathNode
-          node.slice
         when ::Prism::SelfNode
           "self"
         when ::Prism::ForwardingParameterNode
@@ -279,7 +265,6 @@ module RubyLsp
 
       # Determine the appropriate label for the identifier
       def determine_variable_label(name)
-        return "Constant" if name =~ /^[A-Z]/
         return "Instance variable" if name.start_with?("@") && !name.start_with?("@@")
         return "Class variable" if name.start_with?("@@")
         return "Global variable" if name.start_with?("$")
