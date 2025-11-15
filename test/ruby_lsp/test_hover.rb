@@ -219,6 +219,82 @@ module RubyLsp
         assert_match(/Ruby LSP Guesser/, response.contents.value)
       end
 
+      def test_hover_shows_unique_method_calls
+        source = <<~RUBY
+          def process(unique_test_var_12345)
+            unique_test_var_12345.custom_method_1
+            unique_test_var_12345.custom_method_2
+            unique_test_var_12345.custom_method_1
+            unique_test_var_12345.custom_method_1
+          end
+        RUBY
+
+        with_server(source, stub_no_typechecker: true) do |server, uri|
+          # Clear the index and add test data
+          index = RubyLsp::Guesser::VariableIndex.instance
+          index.clear
+
+          # Simulate duplicate method calls being indexed
+          # (line 0, character 12 is where 'unique_test_var_12345' parameter is defined)
+          index.add_method_call(
+            file_path: uri.to_s,
+            var_name: "unique_test_var_12345",
+            def_line: 1,
+            def_column: 12,
+            method_name: "custom_method_1",
+            call_line: 2,
+            call_column: 4
+          )
+          index.add_method_call(
+            file_path: uri.to_s,
+            var_name: "unique_test_var_12345",
+            def_line: 1,
+            def_column: 12,
+            method_name: "custom_method_2",
+            call_line: 3,
+            call_column: 4
+          )
+          index.add_method_call(
+            file_path: uri.to_s,
+            var_name: "unique_test_var_12345",
+            def_line: 1,
+            def_column: 12,
+            method_name: "custom_method_1",
+            call_line: 4,
+            call_column: 4
+          )
+          index.add_method_call(
+            file_path: uri.to_s,
+            var_name: "unique_test_var_12345",
+            def_line: 1,
+            def_column: 12,
+            method_name: "custom_method_1",
+            call_line: 5,
+            call_column: 4
+          )
+
+          # Now request hover
+          server.process_message(
+            id: 1,
+            method: "textDocument/hover",
+            params: { textDocument: { uri: uri }, position: { line: 0, character: 12 } }
+          )
+
+          result = pop_result(server)
+          response = result.response
+          content = response.contents.value
+
+          # Should only show 'custom_method_1' and 'custom_method_2' once each
+          method1_count = content.scan("`custom_method_1`").size
+          method2_count = content.scan("`custom_method_2`").size
+
+          assert_equal 1, method1_count,
+                       "Method 'custom_method_1' should appear only once, but appeared #{method1_count} times"
+          assert_equal 1, method2_count,
+                       "Method 'custom_method_2' should appear only once, but appeared #{method2_count} times"
+        end
+      end
+
       private
 
       def hover_on_source(source, position)
