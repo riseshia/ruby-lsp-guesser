@@ -23,32 +23,18 @@ module RubyLsp
           end
         end
 
-        warn("[RubyLspGuesser] TypeMatcher - Found #{all_entries.size} classes/modules in index")
-        warn("[RubyLspGuesser] TypeMatcher - Looking for methods: #{method_names.inspect}")
-
         # Find classes that have all the specified methods
         matching_classes = []
         all_entries.each do |class_entry|
           class_name = class_entry.name
           has_all_methods = method_names.all? do |method_name|
             method_entries = @index.resolve_method(method_name, class_name)
-            has_method = !method_entries.nil? && !method_entries.empty?
-
-            # Debug: show which classes have which methods
-            if has_method
-              warn("[RubyLspGuesser] TypeMatcher - Class #{class_name} has method #{method_name}")
-            end
-
-            has_method
+            !method_entries.nil? && !method_entries.empty?
           end
 
-          if has_all_methods
-            warn("[RubyLspGuesser] TypeMatcher - Class #{class_name} has ALL methods!")
-            matching_classes << class_name
-          end
+          matching_classes << class_name if has_all_methods
         end
 
-        warn("[RubyLspGuesser] TypeMatcher - Final matches: #{matching_classes.inspect}")
         matching_classes
       end
     end
