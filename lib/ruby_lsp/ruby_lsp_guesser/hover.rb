@@ -248,31 +248,28 @@ module RubyLsp
         end
 
         # Fallback: show method calls only in debug mode, otherwise show nothing
-        if debug_mode?
-          if method_calls.empty?
-            warn("[RubyLspGuesser] Variable '#{variable_name}': No method calls found")
-            "No method calls found."
-          else
-            warn("[RubyLspGuesser] Variable '#{variable_name}' method calls: #{method_calls.inspect}")
-            content = "Method calls:\n"
-            method_calls.each do |method_name|
-              content += "- `#{method_name}`\n"
-            end
-            content
-          end
+        return unless debug_mode?
+
+        if method_calls.empty?
+          warn("[RubyLspGuesser] Variable '#{variable_name}': No method calls found")
+          "No method calls found."
         else
-          # In production mode, don't show anything when type cannot be inferred
-          nil
+          warn("[RubyLspGuesser] Variable '#{variable_name}' method calls: #{method_calls.inspect}")
+          content = "Method calls:\n"
+          method_calls.each do |method_name|
+            content += "- `#{method_name}`\n"
+          end
+          content
         end
       end
 
       # Check if debug mode is enabled via environment variable or config file
       def debug_mode?
         # First check environment variable
-        return true if ENV["RUBY_LSP_GUESSER_DEBUG"] == "1" || ENV["RUBY_LSP_GUESSER_DEBUG"] == "true"
+        return true if %w[1 true].include?(ENV["RUBY_LSP_GUESSER_DEBUG"])
 
         # Then check config file
-        @debug_mode_cached ||= load_debug_mode_from_config
+        @debug_mode ||= load_debug_mode_from_config
       end
 
       # Load debug mode setting from .ruby-lsp-guesser.yml
