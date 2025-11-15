@@ -23,6 +23,8 @@ module RubyLsp
       def activate(global_state, _message_queue)
         warn("[RubyLspGuesser] Activating RubyLspGuesser LSP addon #{VERSION}.")
 
+        @global_state = global_state
+
         # Extend Ruby LSP's ALLOWED_TARGETS to support local variables, parameters, and self for hover
         targets = RubyLsp::Listeners::Hover::ALLOWED_TARGETS
 
@@ -77,7 +79,7 @@ module RubyLsp
       end
 
       def create_hover_listener(response_builder, node_context, dispatcher)
-        Hover.new(response_builder, node_context, dispatcher)
+        Hover.new(response_builder, node_context, dispatcher, @global_state)
       end
 
       private

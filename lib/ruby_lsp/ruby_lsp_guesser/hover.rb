@@ -2,24 +2,18 @@
 
 require "prism"
 require_relative "variable_index"
+require_relative "type_matcher"
 
 module RubyLsp
   module Guesser
     # Hover provider that returns a fixed message
     class Hover
-      def initialize(response_builder, node_context, dispatcher)
+      def initialize(response_builder, node_context, dispatcher, global_state = nil)
         @response_builder = response_builder
         @node_context = node_context
+        @global_state = global_state
 
         register_listeners(dispatcher)
-      end
-
-      def on_constant_read_node_enter(node)
-        add_hover_content(node)
-      end
-
-      def on_constant_path_node_enter(node)
-        add_hover_content(node)
       end
 
       def on_local_variable_read_node_enter(node)
@@ -87,8 +81,6 @@ module RubyLsp
       def register_listeners(dispatcher)
         dispatcher.register(
           self,
-          :on_constant_read_node_enter,
-          :on_constant_path_node_enter,
           :on_local_variable_read_node_enter,
           :on_local_variable_write_node_enter,
           :on_local_variable_target_node_enter,
@@ -114,7 +106,7 @@ module RubyLsp
         method_calls = collect_method_calls(variable_name, node)
 
         content = build_hover_content(variable_name, method_calls)
-        @response_builder.push(content, category: :documentation)
+        @response_builder.push(content, category: :documentation) if content
       end
 
       def extract_variable_name(node)
@@ -139,10 +131,6 @@ module RubyLsp
           node.name.to_s
         when ::Prism::GlobalVariableReadNode
           node.name.to_s
-        when ::Prism::ConstantReadNode
-          node.name.to_s
-        when ::Prism::ConstantPathNode
-          node.slice
         when ::Prism::SelfNode
           "self"
         when ::Prism::ForwardingParameterNode
@@ -247,19 +235,74 @@ module RubyLsp
       end
 
       def build_hover_content(variable_name, method_calls)
-        content = "**Ruby LSP Guesser**\n\n"
-        content += "Variable: `#{variable_name}`\n\n"
+        # Try to infer type if we have method calls and global_state is available
+        if !method_calls.empty? && @global_state
+          inferred_type = infer_type_from_methods(method_calls)
+
+          # Debug logging for method calls
+          if debug_mode? && !method_calls.empty?
+            warn("[RubyLspGuesser] Variable '#{variable_name}' method calls: #{method_calls.inspect}")
+          end
+
+          return inferred_type if inferred_type
+        end
+
+        # Fallback: show method calls only in debug mode, otherwise show nothing
+        return unless debug_mode?
 
         if method_calls.empty?
-          content += "No method calls found."
+          warn("[RubyLspGuesser] Variable '#{variable_name}': No method calls found")
+          "No method calls found."
         else
-          content += "Method calls:\n"
+          warn("[RubyLspGuesser] Variable '#{variable_name}' method calls: #{method_calls.inspect}")
+          content = "Method calls:\n"
           method_calls.each do |method_name|
             content += "- `#{method_name}`\n"
           end
+          content
         end
+      end
 
-        content
+      # Check if debug mode is enabled via environment variable or config file
+      def debug_mode?
+        # First check environment variable
+        return true if %w[1 true].include?(ENV["RUBY_LSP_GUESSER_DEBUG"])
+
+        # Then check config file
+        @debug_mode ||= load_debug_mode_from_config
+      end
+
+      # Load debug mode setting from .ruby-lsp-guesser.yml
+      def load_debug_mode_from_config
+        config_path = File.join(Dir.pwd, ".ruby-lsp-guesser.yml")
+        return false unless File.exist?(config_path)
+
+        require "yaml"
+        config = YAML.load_file(config_path)
+        config["debug"] == true
+      rescue StandardError => e
+        warn("[RubyLspGuesser] Error loading config file: #{e.message}")
+        false
+      end
+
+      # Infer type from method calls using TypeMatcher
+      # Returns a formatted string with the inferred type, or nil if no inference is possible
+      def infer_type_from_methods(method_calls)
+        return nil unless @global_state
+
+        index = @global_state.index
+        matcher = TypeMatcher.new(index)
+        matching_types = matcher.find_matching_types(method_calls)
+
+        case matching_types.size
+        when 0
+          nil # No type inferred, fallback to method list
+        when 1
+          "**Inferred type:** `#{matching_types.first}`"
+        else
+          # Multiple matches - ambiguous
+          "**Ambiguous type** (could be: #{matching_types.map { |t| "`#{t}`" }.join(", ")})"
+        end
       end
     end
   end
