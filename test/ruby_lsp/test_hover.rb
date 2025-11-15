@@ -558,7 +558,7 @@ module RubyLsp
             call_column: 4
           )
 
-          # Hover on 'recipe' parameter
+          # Hover on 'recipe' parameter (definition)
           server.process_message(
             id: 1,
             method: "textDocument/hover",
@@ -572,6 +572,69 @@ module RubyLsp
           # Should show inferred type
           assert_match(/Inferred type:.*Recipe/, content, "Should show inferred type as Recipe")
           refute_match(/Article/, content, "Should not show Article")
+        end
+      end
+
+      def test_hover_shows_inferred_type_on_parameter_usage
+        # Test: Hover shows inferred type when hovering on parameter usage (not just definition)
+        source = <<~RUBY
+          class User
+            def save
+            end
+
+            def validate
+            end
+          end
+
+          def register(user)
+            user.validate
+            user.save
+            user
+          end
+        RUBY
+
+        with_server(source, stub_no_typechecker: true) do |server, uri|
+          # Clear and setup index
+          index = RubyLsp::Guesser::VariableIndex.instance
+          index.clear
+
+          # Add method calls for 'user' parameter
+          index.add_method_call(
+            file_path: uri.to_s,
+            scope_type: :local_variables,
+            scope_id: "register",
+            var_name: "user",
+            def_line: 9,
+            def_column: 13,
+            method_name: "validate",
+            call_line: 10,
+            call_column: 4
+          )
+          index.add_method_call(
+            file_path: uri.to_s,
+            scope_type: :local_variables,
+            scope_id: "register",
+            var_name: "user",
+            def_line: 9,
+            def_column: 13,
+            method_name: "save",
+            call_line: 11,
+            call_column: 4
+          )
+
+          # Hover on 'user' in usage (line 12: the last 'user')
+          server.process_message(
+            id: 1,
+            method: "textDocument/hover",
+            params: { textDocument: { uri: uri }, position: { line: 11, character: 4 } }
+          )
+
+          result = pop_result(server)
+          response = result.response
+          content = response.contents.value
+
+          # Should show inferred type
+          assert_match(/Inferred type:.*User/, content, "Should show inferred type as User")
         end
       end
 
