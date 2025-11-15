@@ -283,6 +283,9 @@ module RubyLsp
         matcher = TypeMatcher.new(index)
         matching_types = matcher.find_matching_types(method_calls)
 
+        # Debug logging
+        warn("[RubyLspGuesser] Type inference - Methods: #{method_calls.inspect}, Matches: #{matching_types.inspect}")
+
         case matching_types.size
         when 0
           nil # No type inferred, fallback to method list
