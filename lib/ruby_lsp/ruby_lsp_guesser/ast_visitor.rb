@@ -31,6 +31,22 @@ module RubyLsp
         super
       end
 
+      # Track instance variable assignments
+      def visit_instance_variable_write_node(node)
+        var_name = node.name.to_s
+        location = node.name_loc
+        register_variable(var_name, location.start_line, location.start_column)
+        super
+      end
+
+      # Track class variable assignments
+      def visit_class_variable_write_node(node)
+        var_name = node.name.to_s
+        location = node.name_loc
+        register_variable(var_name, location.start_line, location.start_column)
+        super
+      end
+
       # Track method parameters
       def visit_required_parameter_node(node)
         var_name = node.name.to_s
@@ -89,9 +105,17 @@ module RubyLsp
 
       # Track method calls on variables
       def visit_call_node(node)
-        # Check if the receiver is a local variable
-        if node.receiver.is_a?(Prism::LocalVariableReadNode)
-          var_name = node.receiver.name.to_s
+        return super unless node.receiver
+
+        receiver = node.receiver
+
+        # Extract variable name based on receiver type
+        var_name = case receiver
+                   when Prism::LocalVariableReadNode, Prism::InstanceVariableReadNode, Prism::ClassVariableReadNode
+                     receiver.name.to_s
+                   end
+
+        if var_name
           method_name = node.name.to_s
           location = node.message_loc || node.location
 
@@ -109,6 +133,7 @@ module RubyLsp
             )
           end
         end
+
         super
       end
 

@@ -325,6 +325,56 @@ module RubyLsp
         assert_equal %w[freeze merge], method_names
       end
 
+      def test_instance_variable_method_calls
+        source = <<~RUBY
+          class User
+            def initialize
+              @name = "John"
+              @name.upcase
+              @name.strip
+            end
+          end
+        RUBY
+
+        parse_and_visit(source, "/test/file.rb")
+
+        # @name is defined at line 3, column 4
+        calls = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "@name",
+          def_line: 3,
+          def_column: 4
+        )
+
+        assert_equal 2, calls.size
+        method_names = calls.map { |c| c[:method] }.sort
+        assert_equal %w[strip upcase], method_names
+      end
+
+      def test_class_variable_method_calls
+        source = <<~RUBY
+          class Config
+            @@settings = load_settings
+            @@settings.validate
+            @@settings.freeze
+          end
+        RUBY
+
+        parse_and_visit(source, "/test/file.rb")
+
+        # @@settings is defined at line 2, column 2
+        calls = @index.get_method_calls(
+          file_path: "/test/file.rb",
+          var_name: "@@settings",
+          def_line: 2,
+          def_column: 2
+        )
+
+        assert_equal 2, calls.size
+        method_names = calls.map { |c| c[:method] }.sort
+        assert_equal %w[freeze validate], method_names
+      end
+
       private
 
       def parse_and_visit(source, file_path)
