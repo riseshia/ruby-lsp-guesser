@@ -2,6 +2,7 @@
 
 require "prism"
 require_relative "variable_index"
+require_relative "type_matcher"
 
 module RubyLsp
   module Guesser
