@@ -22,6 +22,8 @@ module RubyLsp
         # user is defined at line 1, column 0 (top-level)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "(top-level)",
           var_name: "user",
           def_line: 1,
           def_column: 0
@@ -43,9 +45,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # user is defined at line 2, column 2
+        # user is defined at line 2, column 2 (in "foo" method)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "foo",
           var_name: "user",
           def_line: 2,
           def_column: 2
@@ -66,9 +70,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # name parameter is defined at line 1, column 10
+        # name parameter is defined at line 1, column 10 (in "greet" method)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "greet",
           var_name: "name",
           def_line: 1,
           def_column: 10
@@ -94,17 +100,21 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # First user at line 2
+        # First user at line 2 (in "foo" method)
         calls1 = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "foo",
           var_name: "user",
           def_line: 2,
           def_column: 2
         )
 
-        # Second user at line 6
+        # Second user at line 6 (in "bar" method)
         calls2 = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "bar",
           var_name: "user",
           def_line: 6,
           def_column: 4
@@ -129,6 +139,8 @@ module RubyLsp
         # name: parameter is defined at line 1, column 10
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "greet",
           var_name: "name",
           def_line: 1,
           def_column: 10
@@ -150,6 +162,8 @@ module RubyLsp
         # name parameter is defined at line 1, column 10
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "greet",
           var_name: "name",
           def_line: 1,
           def_column: 10
@@ -171,6 +185,8 @@ module RubyLsp
         # *names parameter is defined at line 1, column 10
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "greet",
           var_name: "names",
           def_line: 1,
           def_column: 10
@@ -192,6 +208,8 @@ module RubyLsp
         # &block parameter is defined at line 1, column 12
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "execute",
           var_name: "block",
           def_line: 1,
           def_column: 12
@@ -213,6 +231,8 @@ module RubyLsp
         # **options parameter is defined at line 1, column 10
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "greet",
           var_name: "options",
           def_line: 1,
           def_column: 10
@@ -231,9 +251,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # item is defined at line 1, column 19
+        # item is defined at line 1, column 19 (in top-level block)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "(top-level)",
           var_name: "item",
           def_line: 1,
           def_column: 19
@@ -257,6 +279,8 @@ module RubyLsp
         # x is defined at line 2, column 2
         calls_x = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "foo",
           var_name: "x",
           def_line: 2,
           def_column: 2
@@ -265,6 +289,8 @@ module RubyLsp
         # y is defined at line 2, column 5
         calls_y = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "foo",
           var_name: "y",
           def_line: 2,
           def_column: 5
@@ -288,9 +314,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # config is defined at line 2, column 2 (class body, not in a method)
+        # config is defined at line 2, column 2 (in Foo class body)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "Foo",
           var_name: "config",
           def_line: 2,
           def_column: 2
@@ -312,9 +340,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # settings is defined at line 2, column 2 (module body, not in a method)
+        # settings is defined at line 2, column 2 (in Bar module body)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :local_variables,
+          scope_id: "Bar",
           var_name: "settings",
           def_line: 2,
           def_column: 2
@@ -338,9 +368,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # @name is defined at line 3, column 4
+        # @name is defined at line 3, column 4 (in User class)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :instance_variables,
+          scope_id: "User",
           var_name: "@name",
           def_line: 3,
           def_column: 4
@@ -362,9 +394,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # @@settings is defined at line 2, column 2
+        # @@settings is defined at line 2, column 2 (in Config class)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :class_variables,
+          scope_id: "Config",
           var_name: "@@settings",
           def_line: 2,
           def_column: 2
@@ -393,9 +427,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # @var is defined at line 3, column 4
+        # @var is defined at line 3, column 4 (in Hoge class)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :instance_variables,
+          scope_id: "Hoge",
           var_name: "@var",
           def_line: 3,
           def_column: 4
@@ -426,9 +462,11 @@ module RubyLsp
 
         parse_and_visit(source, "/test/file.rb")
 
-        # @@count is defined at line 3, column 4
+        # @@count is defined at line 3, column 4 (in Config class)
         calls = @index.get_method_calls(
           file_path: "/test/file.rb",
+          scope_type: :class_variables,
+          scope_id: "Config",
           var_name: "@@count",
           def_line: 3,
           def_column: 4

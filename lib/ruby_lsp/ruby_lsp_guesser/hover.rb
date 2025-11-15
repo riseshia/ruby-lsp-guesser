@@ -153,35 +153,97 @@ module RubyLsp
       def collect_method_calls(variable_name, node)
         location = node.location
         hover_line = location.start_line
-        hover_column = location.start_column
+        location.start_column
 
         index = VariableIndex.instance
-        best_match = find_variable_definition(variable_name, hover_line, hover_column)
+        scope_type = determine_scope_type(variable_name)
+        scope_id = generate_scope_id(scope_type)
+
+        # Try to find definitions matching the exact scope
+        definitions = index.find_definitions(
+          var_name: variable_name,
+          scope_type: scope_type,
+          scope_id: scope_id
+        )
+
+        # If no exact match, try without scope_id (broader search)
+        if definitions.empty?
+          definitions = index.find_definitions(
+            var_name: variable_name,
+            scope_type: scope_type
+          )
+        end
+
+        # Find the closest definition that appears before the hover line
+        best_match = definitions
+                     .select { |def_info| def_info[:def_line] <= hover_line }
+                     .max_by { |def_info| def_info[:def_line] }
 
         if best_match
           # Use the exact variable definition location for precise results
           calls = index.get_method_calls(
             file_path: best_match[:file_path],
+            scope_type: best_match[:scope_type],
+            scope_id: best_match[:scope_id],
             var_name: variable_name,
             def_line: best_match[:def_line],
             def_column: best_match[:def_column]
           )
           calls.map { |call| call[:method] }.uniq
         else
-          # Fallback: show all matches but limit to avoid overwhelming output
-          all_calls = index.get_method_calls_by_name(var_name: variable_name)
-          all_calls.take(20)
+          # Fallback: collect method calls from all matching definitions
+          method_names = []
+          definitions.each do |def_info|
+            calls = index.get_method_calls(
+              file_path: def_info[:file_path],
+              scope_type: def_info[:scope_type],
+              scope_id: def_info[:scope_id],
+              var_name: variable_name,
+              def_line: def_info[:def_line],
+              def_column: def_info[:def_column]
+            )
+            method_names.concat(calls.map { |call| call[:method] })
+          end
+          method_names.uniq.take(20)
         end
       end
 
-      def find_variable_definition(var_name, hover_line, _hover_column)
-        definitions = VariableIndex.instance.find_definitions(var_name: var_name)
+      # Determine the scope type based on variable name
+      def determine_scope_type(var_name)
+        if var_name.start_with?("@@")
+          :class_variables
+        elsif var_name.start_with?("@")
+          :instance_variables
+        else
+          :local_variables
+        end
+      end
 
-        # Find the closest definition that appears before the hover line
-        # This assumes the definition is in the same file (limitation: we don't have file path here)
-        definitions
-          .select { |def_info| def_info[:def_line] <= hover_line }
-          .max_by { |def_info| def_info[:def_line] }
+      # Generate scope ID from node context
+      # - For instance/class variables: "ClassName"
+      # - For local variables: "ClassName#method_name"
+      def generate_scope_id(scope_type)
+        nesting = @node_context.nesting
+        # nesting may contain strings or objects with name method
+        class_path = nesting.map { |n| n.is_a?(String) ? n : n.name }.join("::")
+
+        if scope_type == :local_variables
+          # Try to find enclosing method name
+          enclosing_method = @node_context.call_node&.name&.to_s
+          if enclosing_method && !class_path.empty?
+            "#{class_path}##{enclosing_method}"
+          elsif enclosing_method
+            enclosing_method
+          elsif !class_path.empty?
+            class_path
+          else
+            "(top-level)"
+          end
+        elsif !class_path.empty?
+          class_path
+        else
+          "(top-level)"
+        end
       end
 
       def build_hover_content(variable_name, method_calls)
