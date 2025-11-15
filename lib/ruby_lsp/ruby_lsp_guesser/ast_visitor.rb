@@ -7,6 +7,7 @@ module RubyLsp
   module Guesser
     # AST visitor for collecting variable definitions and method calls
     # Tracks local variables, parameters, and their method call patterns
+    # Maintains scope awareness for accurate type inference
     class ASTVisitor < ::Prism::Visitor
       def initialize(file_path)
         super()
@@ -15,6 +16,10 @@ module RubyLsp
         @scopes = [{}] # Stack of scopes for local variables
         @instance_variables = [{}] # Stack of scopes for instance variables (class level)
         @class_variables = [{}] # Stack of scopes for class variables (class level)
+
+        # Track current scope identifiers
+        @class_stack = [] # Stack of class/module names for scope ID
+        @method_stack = [] # Stack of method names for scope ID
       end
 
       # Track local variable assignments
@@ -124,8 +129,13 @@ module RubyLsp
           # Find the variable definition in current or parent scopes
           var_def = find_variable_in_scopes(var_name)
           if var_def
+            scope_type = determine_scope_type(var_name)
+            scope_id = generate_scope_id(scope_type)
+
             @index.add_method_call(
               file_path: @file_path,
+              scope_type: scope_type,
+              scope_id: scope_id,
               var_name: var_name,
               def_line: var_def[:line],
               def_column: var_def[:column],
@@ -141,10 +151,13 @@ module RubyLsp
 
       # Push new scope for method definitions
       def visit_def_node(node)
+        method_name = node.name.to_s
+        @method_stack.push(method_name)
         push_scope
         super
       ensure
         pop_scope
+        @method_stack.pop
       end
 
       # Push new scope for blocks
@@ -157,22 +170,28 @@ module RubyLsp
 
       # Push new scope for class definitions
       def visit_class_node(node)
+        class_name = extract_class_name(node.constant_path)
+        @class_stack.push(class_name)
         push_scope
         push_member_scope
         super
       ensure
         pop_member_scope
         pop_scope
+        @class_stack.pop
       end
 
       # Push new scope for module definitions
       def visit_module_node(node)
+        module_name = extract_class_name(node.constant_path)
+        @class_stack.push(module_name)
         push_scope
         push_member_scope
         super
       ensure
         pop_member_scope
         pop_scope
+        @class_stack.pop
       end
 
       private
@@ -223,6 +242,48 @@ module RubyLsp
       def pop_member_scope
         @instance_variables.pop
         @class_variables.pop
+      end
+
+      # Determine the scope type based on variable name
+      def determine_scope_type(var_name)
+        if var_name.start_with?("@@")
+          :class_variables
+        elsif var_name.start_with?("@")
+          :instance_variables
+        else
+          :local_variables
+        end
+      end
+
+      # Generate scope ID for the current context
+      # - For instance/class variables: "ClassName" or "Module::ClassName"
+      # - For local variables: "ClassName#method_name"
+      def generate_scope_id(scope_type)
+        class_path = @class_stack.join("::")
+
+        if scope_type == :local_variables && !@method_stack.empty?
+          # Local variable: "ClassName#method_name"
+          method_name = @method_stack.last
+          class_path.empty? ? method_name : "#{class_path}##{method_name}"
+        elsif !class_path.empty?
+          # Instance/class variable: "ClassName"
+          class_path
+        else
+          # Top-level scope
+          "(top-level)"
+        end
+      end
+
+      # Extract class/module name from constant path node
+      def extract_class_name(constant_path)
+        case constant_path
+        when Prism::ConstantReadNode
+          constant_path.name.to_s
+        when Prism::ConstantPathNode
+          constant_path.slice
+        else
+          "Unknown"
+        end
       end
     end
   end

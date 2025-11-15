@@ -236,8 +236,11 @@ module RubyLsp
 
           # Simulate duplicate method calls being indexed
           # (line 0, character 12 is where 'unique_test_var_12345' parameter is defined)
+          # Scope: top-level method "process", so scope_id is "process"
           index.add_method_call(
             file_path: uri.to_s,
+            scope_type: :local_variables,
+            scope_id: "process",
             var_name: "unique_test_var_12345",
             def_line: 1,
             def_column: 12,
@@ -247,6 +250,8 @@ module RubyLsp
           )
           index.add_method_call(
             file_path: uri.to_s,
+            scope_type: :local_variables,
+            scope_id: "process",
             var_name: "unique_test_var_12345",
             def_line: 1,
             def_column: 12,
@@ -256,6 +261,8 @@ module RubyLsp
           )
           index.add_method_call(
             file_path: uri.to_s,
+            scope_type: :local_variables,
+            scope_id: "process",
             var_name: "unique_test_var_12345",
             def_line: 1,
             def_column: 12,
@@ -265,6 +272,8 @@ module RubyLsp
           )
           index.add_method_call(
             file_path: uri.to_s,
+            scope_type: :local_variables,
+            scope_id: "process",
             var_name: "unique_test_var_12345",
             def_line: 1,
             def_column: 12,
@@ -316,8 +325,11 @@ module RubyLsp
           index.clear
 
           # Manually index the method calls
+          # Instance variable in TestClass, so scope_id is "TestClass"
           index.add_method_call(
             file_path: uri.to_s,
+            scope_type: :instance_variables,
+            scope_id: "TestClass",
             var_name: "@unique_ivar_xyz_12345",
             def_line: 3,
             def_column: 6,
@@ -327,6 +339,8 @@ module RubyLsp
           )
           index.add_method_call(
             file_path: uri.to_s,
+            scope_type: :instance_variables,
+            scope_id: "TestClass",
             var_name: "@unique_ivar_xyz_12345",
             def_line: 3,
             def_column: 6,
@@ -336,6 +350,8 @@ module RubyLsp
           )
           index.add_method_call(
             file_path: uri.to_s,
+            scope_type: :instance_variables,
+            scope_id: "TestClass",
             var_name: "@unique_ivar_xyz_12345",
             def_line: 3,
             def_column: 6,
