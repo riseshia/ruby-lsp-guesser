@@ -266,9 +266,26 @@ module RubyLsp
         end
       end
 
-      # Check if debug mode is enabled via environment variable
+      # Check if debug mode is enabled via environment variable or config file
       def debug_mode?
-        ENV["RUBY_LSP_GUESSER_DEBUG"] == "1" || ENV["RUBY_LSP_GUESSER_DEBUG"] == "true"
+        # First check environment variable
+        return true if ENV["RUBY_LSP_GUESSER_DEBUG"] == "1" || ENV["RUBY_LSP_GUESSER_DEBUG"] == "true"
+
+        # Then check config file
+        @debug_mode_cached ||= load_debug_mode_from_config
+      end
+
+      # Load debug mode setting from .ruby-lsp-guesser.yml
+      def load_debug_mode_from_config
+        config_path = File.join(Dir.pwd, ".ruby-lsp-guesser.yml")
+        return false unless File.exist?(config_path)
+
+        require "yaml"
+        config = YAML.load_file(config_path)
+        config["debug"] == true
+      rescue StandardError => e
+        warn("[RubyLspGuesser] Error loading config file: #{e.message}")
+        false
       end
 
       # Infer type from method calls using TypeMatcher

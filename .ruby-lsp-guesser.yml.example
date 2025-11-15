@@ -1,0 +1,4 @@
+# Ruby LSP Guesser Configuration
+#
+# Enable debug mode to see method call logging in LSP output
+debug: false

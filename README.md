@@ -56,13 +56,28 @@ The addon analyzes method calls (`ingredients`, `steps`) and finds that only the
 
 ### Debug Mode
 
-Enable debug mode to see method call information in the output:
+Enable debug mode to see method call information in the LSP output. There are two ways:
+
+**Method 1: Config file (recommended)**
+
+Create a `.ruby-lsp-guesser.yml` file in your project root:
+
+```yaml
+debug: true
+```
+
+Then restart Ruby LSP (VSCode: reload window).
+
+**Method 2: Environment variable**
+
+Launch VSCode from terminal with the environment variable:
 
 ```bash
 export RUBY_LSP_GUESSER_DEBUG=1
+code .
 ```
 
-In debug mode, the addon will log method calls to stderr, which can be helpful for troubleshooting type inference issues.
+In debug mode, the addon will log method calls to stderr and show method lists in hover tooltips when type cannot be inferred.
 
 ## Development
 
