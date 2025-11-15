@@ -62,18 +62,18 @@ module RubyLsp
 
         # Find classes that have both 'ingredients' and 'comments' methods
         # Only Recipe should match
-        matches = matcher.find_matching_types(["ingredients", "comments"])
+        matches = matcher.find_matching_types(%w[ingredients comments])
         assert_equal ["Recipe"], matches.sort
 
         # Find classes that have 'comments' method
         # Both Recipe and Article should match
         matches = matcher.find_matching_types(["comments"])
-        assert_equal ["Article", "Recipe"], matches.sort
+        assert_equal %w[Article Recipe], matches.sort
 
         # Find classes that have 'author' method
         # Both Article and Book should match
         matches = matcher.find_matching_types(["author"])
-        assert_equal ["Article", "Book"], matches.sort
+        assert_equal %w[Article Book], matches.sort
       end
 
       def test_returns_empty_when_no_class_has_all_methods
@@ -97,7 +97,7 @@ module RubyLsp
         matcher = RubyLsp::Guesser::TypeMatcher.new(@index)
 
         # No class has both 'ingredients' and 'comments'
-        matches = matcher.find_matching_types(["ingredients", "comments"])
+        matches = matcher.find_matching_types(%w[ingredients comments])
         assert_equal [], matches
 
         # No class has 'nonexistent_method'
@@ -127,7 +127,7 @@ module RubyLsp
         matcher = RubyLsp::Guesser::TypeMatcher.new(@index)
 
         # Only UniqueClass has both methods
-        matches = matcher.find_matching_types(["unique_method_alpha", "unique_method_beta"])
+        matches = matcher.find_matching_types(%w[unique_method_alpha unique_method_beta])
         assert_equal ["UniqueClass"], matches
       end
 
@@ -164,8 +164,8 @@ module RubyLsp
         matcher = RubyLsp::Guesser::TypeMatcher.new(@index)
 
         # Both Persisted and Cached have 'save' and 'destroy'
-        matches = matcher.find_matching_types(["save", "destroy"])
-        assert_equal ["Cached", "Persisted"], matches.sort
+        matches = matcher.find_matching_types(%w[save destroy])
+        assert_equal %w[Cached Persisted], matches.sort
       end
 
       def test_can_find_methods_in_class
